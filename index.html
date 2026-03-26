@@ -130,7 +130,7 @@
         }
         .bg-bill { background-color: #a8e6cf; }
         .bg-penalty { background-color: #ff8b94; color: white; }
-        .bg-discount { background-color: #d4edda; color: #155724; } /* नया डिस्काउंट कलर */
+        .bg-discount { background-color: #d4edda; color: #155724; } 
         .bg-advance { background-color: #4facfe; color: white; }
         .bg-total { background-color: #e0e0e0; }
         .text-right { text-align: right; }
@@ -142,6 +142,29 @@
         .penalty-waived-partial {
             background-color: #ffb3ba !important;
             color: #333 !important;
+        }
+
+        /* रिमार्क के लिए नया और अट्रैक्टिव डिज़ाइन */
+        .remark-box {
+            margin-top: 25px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 6px solid #28a745;
+            border-radius: 6px;
+            font-size: 16px;
+            color: #2c3e50;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            line-height: 1.6;
+        }
+        .highlight-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d9534f;
+        }
+        .highlight-discount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
         }
 
         @media print {
@@ -217,6 +240,8 @@
             <td id="finalCharge" class="bg-total text-center">0.00</td>
         </tr>
     </table>
+
+    <div id="remarkBox" class="remark-box" style="display: none;"></div>
 </div>
 
 <script>
@@ -342,11 +367,11 @@
         let currentFyPenalty = penaltyableCurrentFy * 0.10; 
         let finalArrearsPenalty = standardArrearsPenalty;
         
-        let discountAmt = 0; // नया वेरिएबल: छूट का अमाउंट स्टोर करने के लिए
+        let discountAmt = 0; 
 
         const penaltyLabel = document.getElementById('penaltyLabel');
         const penaltyAmountCell = document.getElementById('penaltyAmount');
-        const discountRow = document.getElementById('discountRow'); // नई रो को कंट्रोल करने के लिए
+        const discountRow = document.getElementById('discountRow'); 
         const discountAmountCell = document.getElementById('discountAmount');
         
         let baseLabelText = "Penalty 10%";
@@ -359,39 +384,38 @@
         if (isLokAdalat) {
             if (totalBill <= 10000) {
                 finalArrearsPenalty = 0; 
-                discountAmt = standardArrearsPenalty; // 100% छूट
+                discountAmt = standardArrearsPenalty; 
                 penaltyLabel.innerText = baseLabelText + " - Arrears 100% Waived";
                 penaltyLabel.className = "text-right penalty-waived-full";
                 penaltyAmountCell.className = "text-center penalty-waived-full";
             } 
             else if (totalBill > 10000 && totalBill <= 50000) {
                 finalArrearsPenalty = standardArrearsPenalty * 0.25; 
-                discountAmt = standardArrearsPenalty * 0.75; // 75% छूट
+                discountAmt = standardArrearsPenalty * 0.75; 
                 penaltyLabel.innerText = baseLabelText + " - Arrears 75% Waived";
                 penaltyLabel.className = "text-right penalty-waived-partial";
                 penaltyAmountCell.className = "text-center penalty-waived-partial";
             } 
             else if (totalBill > 50000) {
                 finalArrearsPenalty = standardArrearsPenalty * 0.50; 
-                discountAmt = standardArrearsPenalty * 0.50; // 50% छूट
+                discountAmt = standardArrearsPenalty * 0.50; 
                 penaltyLabel.innerText = baseLabelText + " - Arrears 50% Waived";
                 penaltyLabel.className = "text-right penalty-waived-partial";
                 penaltyAmountCell.className = "text-center penalty-waived-partial";
             }
         } else {
             finalArrearsPenalty = standardArrearsPenalty;
-            discountAmt = 0; // कोई छूट नहीं
+            discountAmt = 0; 
             penaltyLabel.innerText = baseLabelText;
             penaltyLabel.className = "text-right bg-penalty";
             penaltyAmountCell.className = "text-center bg-penalty";
         }
 
-        // डिस्काउंट रो को दिखाना या छिपाना
         if (discountAmt > 0) {
-            discountRow.style.display = ''; // रो दिखाएं
+            discountRow.style.display = ''; 
             discountAmountCell.innerText = "- " + discountAmt.toFixed(2);
         } else {
-            discountRow.style.display = 'none'; // रो छिपाएं
+            discountRow.style.display = 'none'; 
         }
 
         const finalPenalty = finalArrearsPenalty + currentFyPenalty;
@@ -401,23 +425,35 @@
         document.getElementById('penaltyAmount').innerText = finalPenalty.toFixed(2);
         document.getElementById('advPaymentDisplay').innerText = advancePayment.toFixed(2);
         document.getElementById('finalCharge').innerText = totalCharge.toFixed(2);
+
+        // अपडेटेड और अट्रैक्टिव रिमार्क लॉजिक
+        const remarkBox = document.getElementById('remarkBox');
+        if (totalCharge > 0 || totalBill > 0) {
+            remarkBox.style.display = 'block';
+            
+            // बेसिक रिमार्क
+            let remarkHtml = `<strong>📌 रिमार्क:</strong> दिनांक <strong>${formatDate(userStart)}</strong> से <strong>${formatDate(userEnd)}</strong> तक की कुल देय राशि <span class="highlight-amount">₹${totalCharge.toFixed(2)}</span> है।`;
+            
+            // अगर डिस्काउंट मिला है, तो एक नई लाइन में डिस्काउंट हाईलाइट करें
+            if (discountAmt > 0) {
+                remarkHtml += `<br><span style="color: #155724;">🎉 <em>(लोक अदालत के अंतर्गत <span class="highlight-discount">₹${discountAmt.toFixed(2)}</span> की पेनल्टी छूट दी गई है।)</em></span>`;
+            }
+            
+            remarkBox.innerHTML = remarkHtml;
+        } else {
+            remarkBox.style.display = 'none';
+        }
     }
 
-    // नया स्मार्ट ऑटो-डेट लॉजिक
     window.onload = function() {
         const today = new Date();
-        
-        // पिछले महीने का आखिरी दिन निकालने का सबसे सटीक तरीका
         const lastDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
         
         const yyyy = lastDayOfPrevMonth.getFullYear();
         const mm = String(lastDayOfPrevMonth.getMonth() + 1).padStart(2, '0');
         const dd = String(lastDayOfPrevMonth.getDate()).padStart(2, '0');
         
-        // एंड डेट के बॉक्स में पिछले महीने की आखिरी तारीख सेट करें
         document.getElementById('endDate').value = `${yyyy}-${mm}-${dd}`;
-        
-        // और तुरंत बिल कैलकुलेट कर दें
         calculateBill();
     };
 </script>
