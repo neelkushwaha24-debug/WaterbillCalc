@@ -130,6 +130,7 @@
         }
         .bg-bill { background-color: #a8e6cf; }
         .bg-penalty { background-color: #ff8b94; color: white; }
+        .bg-discount { background-color: #d4edda; color: #155724; } /* नया डिस्काउंट कलर */
         .bg-advance { background-color: #4facfe; color: white; }
         .bg-total { background-color: #e0e0e0; }
         .text-right { text-align: right; }
@@ -202,6 +203,10 @@
         <tr>
             <td colspan="4" id="penaltyLabel" class="text-right bg-penalty">Penalty 10%</td>
             <td id="penaltyAmount" class="bg-penalty text-center">0.00</td>
+        </tr>
+        <tr id="discountRow" style="display: none;">
+            <td colspan="4" class="text-right bg-discount">Lok Adalat Discount (छूट)</td>
+            <td id="discountAmount" class="bg-discount text-center">0.00</td>
         </tr>
         <tr>
             <td colspan="4" class="text-right bg-advance">Advance Payment</td>
@@ -337,8 +342,12 @@
         let currentFyPenalty = penaltyableCurrentFy * 0.10; 
         let finalArrearsPenalty = standardArrearsPenalty;
         
+        let discountAmt = 0; // नया वेरिएबल: छूट का अमाउंट स्टोर करने के लिए
+
         const penaltyLabel = document.getElementById('penaltyLabel');
         const penaltyAmountCell = document.getElementById('penaltyAmount');
+        const discountRow = document.getElementById('discountRow'); // नई रो को कंट्रोल करने के लिए
+        const discountAmountCell = document.getElementById('discountAmount');
         
         let baseLabelText = "Penalty 10%";
         if (isGracePeriod) {
@@ -350,27 +359,39 @@
         if (isLokAdalat) {
             if (totalBill <= 10000) {
                 finalArrearsPenalty = 0; 
+                discountAmt = standardArrearsPenalty; // 100% छूट
                 penaltyLabel.innerText = baseLabelText + " - Arrears 100% Waived";
                 penaltyLabel.className = "text-right penalty-waived-full";
                 penaltyAmountCell.className = "text-center penalty-waived-full";
             } 
             else if (totalBill > 10000 && totalBill <= 50000) {
                 finalArrearsPenalty = standardArrearsPenalty * 0.25; 
+                discountAmt = standardArrearsPenalty * 0.75; // 75% छूट
                 penaltyLabel.innerText = baseLabelText + " - Arrears 75% Waived";
                 penaltyLabel.className = "text-right penalty-waived-partial";
                 penaltyAmountCell.className = "text-center penalty-waived-partial";
             } 
             else if (totalBill > 50000) {
                 finalArrearsPenalty = standardArrearsPenalty * 0.50; 
+                discountAmt = standardArrearsPenalty * 0.50; // 50% छूट
                 penaltyLabel.innerText = baseLabelText + " - Arrears 50% Waived";
                 penaltyLabel.className = "text-right penalty-waived-partial";
                 penaltyAmountCell.className = "text-center penalty-waived-partial";
             }
         } else {
             finalArrearsPenalty = standardArrearsPenalty;
+            discountAmt = 0; // कोई छूट नहीं
             penaltyLabel.innerText = baseLabelText;
             penaltyLabel.className = "text-right bg-penalty";
             penaltyAmountCell.className = "text-center bg-penalty";
+        }
+
+        // डिस्काउंट रो को दिखाना या छिपाना
+        if (discountAmt > 0) {
+            discountRow.style.display = ''; // रो दिखाएं
+            discountAmountCell.innerText = "- " + discountAmt.toFixed(2);
+        } else {
+            discountRow.style.display = 'none'; // रो छिपाएं
         }
 
         const finalPenalty = finalArrearsPenalty + currentFyPenalty;
